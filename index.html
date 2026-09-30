@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Demessifier" />
+  <title>Micro Demessifier</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">MICROSOFT 365, BUT SANE</div>
+        <h1>Micro Demessifier</h1>
+        <p>Organize the OneDrive, SharePoint, Teams, and web pages you actually use.</p>
+      </div>
+      <button id="manageBtn" class="ghost">Organize</button>
+    </header>
+
+    <section class="search-card">
+      <label for="searchBox">Find a shortcut</label>
+      <div class="search-row">
+        <input id="searchBox" type="search" placeholder="Search your organized links…" autocomplete="off" />
+        <button id="clearSearch" class="ghost small">Clear</button>
+      </div>
+      <p class="hint">This version organizes the places you choose. A later Microsoft Graph-connected version can search 365 content directly.</p>
+    </section>
+
+    <main id="sections"></main>
+
+    <section class="recent-wrap">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">RECENT</div>
+          <h2>Recently opened</h2>
+        </div>
+        <button id="clearRecent" class="ghost small">Clear</button>
+      </div>
+      <div id="recentList" class="recent-list"></div>
+    </section>
+
+    <footer>
+      <span>Your organization stays in this browser unless you export it.</span>
+    </footer>
+  </div>
+
+  <dialog id="managerDialog">
+    <form method="dialog" class="editor-card">
+      <div class="editor-head">
+        <div>
+          <div class="eyebrow">ORGANIZE</div>
+          <h2>Build your own map</h2>
+        </div>
+        <button value="cancel" class="ghost">Close</button>
+      </div>
+
+      <p class="editor-copy">
+        Create sections, then add links to SharePoint sites, document libraries, folders,
+        Teams channels, OneDrive locations, or ordinary web pages.
+      </p>
+
+      <div id="managerSections"></div>
+
+      <div class="manager-toolbar">
+        <button type="button" id="addSection" class="ghost">+ Add section</button>
+        <button type="button" id="importConfig" class="ghost">Import</button>
+        <button type="button" id="exportConfig" class="ghost">Export</button>
+        <input id="importFile" type="file" accept="application/json" hidden />
+      </div>
+
+      <div class="editor-actions">
+        <button type="button" id="resetDefaults" class="ghost">Reset example</button>
+        <button type="button" id="saveChanges" class="primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

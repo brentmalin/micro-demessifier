@@ -1,0 +1,63 @@
+
+:root {
+  --bg:#f6f7f9; --panel:#fff; --text:#17191c; --muted:#68707b;
+  --line:#e5e8ec; --shadow:0 10px 30px rgba(0,0,0,.06); --radius:18px;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+body{min-height:100vh}
+.app-shell{width:min(1040px,calc(100% - 28px));margin:0 auto;padding:28px 0 48px}
+.topbar,.section-heading,.editor-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.topbar h1,h2{margin:0}
+.topbar h1{font-size:clamp(2.2rem,7vw,4.5rem);letter-spacing:-.055em;line-height:.95}
+.topbar p{margin:12px 0 0;color:var(--muted);font-size:1.02rem;max-width:700px}
+.eyebrow{font-size:.72rem;letter-spacing:.18em;font-weight:800;color:var(--muted);margin-bottom:8px}
+.search-card,.section-card,.recent-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.search-card{margin-top:28px;padding:20px}
+.search-card label{display:block;font-weight:700;margin-bottom:10px}
+.search-row{display:flex;gap:10px}
+.search-row input{flex:1;border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:1rem;outline:none;background:#fbfcfd}
+.search-row input:focus{border-color:#aab1ba;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+.hint,.editor-copy{color:var(--muted);font-size:.9rem;margin:10px 0 0}
+#sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px}
+.section-card{padding:20px}
+.section-card h2{font-size:1.2rem;margin-bottom:14px}
+.link-grid{display:grid;gap:10px}
+.link-item{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:14px;padding:13px 14px;transition:transform .08s ease,background .08s ease,border-color .08s ease}
+.link-item:hover{background:#fafbfc;transform:translateY(-1px);border-color:#d5d9df}
+.link-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#f0f2f5;font-size:1.1rem;flex:0 0 auto}
+.link-copy{min-width:0}
+.link-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link-sub{color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.recent-wrap{margin-top:18px;padding:20px}
+.recent-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.recent-chip{border:1px solid var(--line);border-radius:999px;padding:8px 11px;background:#fbfcfd;color:var(--text);text-decoration:none;font-size:.9rem}
+.empty{color:var(--muted);font-size:.92rem}
+button{font:inherit;border:0;cursor:pointer}
+.ghost,.primary,.danger{border-radius:12px;padding:10px 14px;font-weight:700}
+.ghost{background:#eef1f4;color:var(--text)}
+.primary{background:#17191c;color:white}
+.danger{background:#f4e9e9;color:#6e2525}
+.small{padding:8px 10px;font-size:.85rem}
+footer{color:var(--muted);font-size:.8rem;padding:18px 4px 0;text-align:center}
+dialog{border:0;padding:0;background:transparent;width:min(860px,calc(100% - 24px))}
+dialog::backdrop{background:rgba(0,0,0,.28);backdrop-filter:blur(2px)}
+.editor-card{background:white;border-radius:20px;border:1px solid var(--line);box-shadow:0 24px 80px rgba(0,0,0,.18);padding:22px;max-height:88vh;overflow:auto}
+.manager-section{border-top:1px solid var(--line);padding:18px 0}
+.manager-section:first-of-type{margin-top:18px}
+.section-name-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px}
+.section-name-row input,.item-editor input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font-size:.9rem}
+.item-editor{display:grid;grid-template-columns:44px minmax(120px,1fr) minmax(150px,1.5fr) minmax(220px,2fr) auto;gap:8px;align-items:center;margin:8px 0}
+.item-editor .icon-input{text-align:center}
+.manager-toolbar{display:flex;flex-wrap:wrap;gap:8px;padding-top:8px}
+.editor-actions{display:flex;justify-content:space-between;gap:12px;margin-top:18px}
+@media(max-width:760px){
+  .app-shell{width:min(100% - 20px,1040px);padding-top:18px}
+  #sections{grid-template-columns:1fr}
+  .topbar{align-items:center}
+  .topbar p{max-width:78%}
+  .item-editor{grid-template-columns:44px 1fr auto}
+  .item-editor .subtitle-input,.item-editor .url-input{grid-column:2/4}
+  .editor-actions{flex-direction:column-reverse}
+}
