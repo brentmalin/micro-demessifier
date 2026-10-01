@@ -275,12 +275,15 @@ function renderEditor(items,root,s,parent=""){
     row.innerHTML=`${iconEditor(item,s,path)}
       <input data-field="title" class="title-input" aria-label="Name" value="${escapeHtml(item.title)}" placeholder="Name">
       <input data-field="subtitle" class="subtitle-input" aria-label="Description" value="${escapeHtml(item.subtitle||"")}" placeholder="Description">
-      ${Array.isArray(item.items)?'<span class="folder-label">Folder</span>':`<input data-field="url" class="url-input" type="url" aria-label="Link URL" value="${escapeHtml(item.url||"")}" placeholder="https://…">`}
+      ${Array.isArray(item.items)?'<div class="folder-kind-actions"><span class="folder-label">Folder</span></div>':`<input data-field="url" class="url-input" type="url" aria-label="Link URL" value="${escapeHtml(item.url||"")}" placeholder="https://…">`}
+      <button type="button" class="ghost small move-item">Move…</button>
       <button type="button" class="danger small remove-item" aria-label="Remove item">×</button>`;
     row.querySelector(".remove-item").addEventListener("click",()=>{
       if(Array.isArray(item.items)&&item.items.length&&!confirm("Remove this folder and all its links?"))return;
       syncManagerInputs();itemsAt(s,parent).splice(i,1);renderManager();
     });
+    const moveButton=row.querySelector(".move-item");
+    if(moveButton)moveButton.addEventListener("click",()=>{syncManagerInputs();openMoveItemDialog(s,path)});
     wrap.appendChild(row);
     if(Array.isArray(item.items)){
       const children=document.createElement("div");children.className="folder-editor-children";renderEditor(item.items,children,s,path);wrap.appendChild(children);
@@ -297,6 +300,77 @@ function addEditorButtons(root,s,path=""){
   }
   root.appendChild(bar);
 }
+let pendingItemMove=null;
+function itemDestinations(){
+  const out=[];
+  config.sections.forEach((section,s)=>{
+    out.push({s,path:"",label:section.title||`Section ${s+1}`,items:section.items});
+    const walk=(items,parentPath,labelParts)=>{
+      items.forEach((item,i)=>{
+        if(!Array.isArray(item.items))return;
+        const path=parentPath?`${parentPath}.${i}`:String(i);
+        const parts=[...labelParts,item.title||"Untitled folder"];
+        out.push({s,path,label:`${section.title} / ${parts.join(" / ")}`,items:item.items});
+        walk(item.items,path,parts);
+      });
+    };
+    walk(section.items,"",[]);
+  });
+  return out;
+}
+function openMoveItemDialog(s,path){
+  const source=itemAt(s,path);
+  if(!source)return;
+  const isFolder=Array.isArray(source.items);
+  const parentPath=path.includes(".")?path.slice(0,path.lastIndexOf(".")):"";
+  const select=document.getElementById("moveItemDestination");
+  select.innerHTML="";
+  itemDestinations().forEach(dest=>{
+    if(dest.s===s){
+      if(dest.path===parentPath)return; // already there
+      if(isFolder){
+        if(dest.path===path)return;
+        if(dest.path&&dest.path.startsWith(path+"."))return; // cannot move a folder into itself/descendant
+      }
+    }
+    const option=document.createElement("option");
+    option.value=`${dest.s}|${dest.path}`;
+    option.textContent=dest.label;
+    select.appendChild(option);
+  });
+  if(!select.options.length){
+    alert("There isn't another folder or section to move this item into yet.");
+    return;
+  }
+  pendingItemMove={s,path,title:source.title||(isFolder?"Folder":"Shortcut"),isFolder};
+  document.getElementById("moveItemTitle").textContent=`Move “${pendingItemMove.title}”`;
+  document.getElementById("moveItemCopy").textContent=isFolder
+    ? "The folder and everything inside it will move together."
+    : "This shortcut will move to the destination you choose.";
+  document.getElementById("confirmMoveItem").textContent=isFolder?"Move folder":"Move shortcut";
+  document.getElementById("moveItemDialog").showModal();
+}
+function performItemMove(){
+  if(!pendingItemMove)return;
+  syncManagerInputs();
+  const {s,path}=pendingItemMove;
+  const source=itemAt(s,path);
+  if(!source){pendingItemMove=null;return}
+  const value=document.getElementById("moveItemDestination").value;
+  const [destSRaw,destPath=""]=value.split("|");
+  const destS=Number(destSRaw);
+  // Take a reference to the destination array before removing the source so same-section index shifts don't matter.
+  const destinationItems=destPath?itemAt(destS,destPath).items:config.sections[destS].items;
+  const parentPath=path.includes(".")?path.slice(0,path.lastIndexOf(".")):"";
+  const sourceItems=itemsAt(s,parentPath);
+  const sourceIndex=Number(path.split(".").pop());
+  const [moved]=sourceItems.splice(sourceIndex,1);
+  destinationItems.push(moved);
+  pendingItemMove=null;
+  document.getElementById("moveItemDialog").close();
+  renderManager();
+}
+
 function renderManager(){
   const root=document.getElementById("managerSections");root.innerHTML="";
   config.sections.forEach((section,s)=>{
@@ -318,6 +392,7 @@ function syncManagerInputs(){
   });
 }
 
+document.getElementById("confirmMoveItem").addEventListener("click",performItemMove);
 document.getElementById("manageBtn").addEventListener("click",openManager);
 document.getElementById("addSection").addEventListener("click",()=>{syncManagerInputs();config.sections.push({title:"New section",items:[]});renderManager()});
 document.getElementById("saveChanges").addEventListener("click",async()=>{syncManagerInputs();await saveConfig();renderSections(document.getElementById("searchBox").value);document.getElementById("managerDialog").close()});
