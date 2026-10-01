@@ -1,0 +1,12 @@
+Icon update
+
+Upload the contents of this folder into the existing micro-demessifier GitHub repository, replacing files with the same names. Keep the existing site address so your browser retains your saved shortcuts.
+
+After GitHub Pages finishes updating, reopen or refresh Demessifier. If it still shows the old editor, close the app and reopen it once more.
+
+Click Organize. Each shortcut now has an Icon dropdown. Select Folder, Document, SharePoint, OneDrive, Teams, Link, Calendar, Email, Star, Auto, or Custom emoji. For Custom emoji, paste an emoji in the field below the dropdown. Click Save.
+
+Existing shortcuts retain their icons. Auto uses the shortcut URL to make a best guess. Export your layout before updating if you want a backup. Do not use Reset example unless you want to replace your layout.
+
+Folder update (v4)
+In Organize, click + Add folder in a section. Name it, then use + Add shortcut inside that folder to add its links. Click Save. Click the folder on the main screen to expand or collapse it. You can also add folders within folders. Search includes the links inside folders. Removing a populated folder asks for confirmation.
