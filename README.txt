@@ -41,3 +41,15 @@ A Graph-connected edition could:
 - show actual recent files
 - let users pin live files/folders rather than just URLs
 - optionally sync the user's Demessifier layout across devices
+
+
+ICON UPDATE
+-----------
+Includes:
+- apple-touch-icon.png (180x180)
+- icon-192.png
+- icon-512.png
+
+The manifest and index.html already reference them.
+After GitHub Pages republishes, remove the old iPhone Home Screen shortcut
+and add the site again so iOS loads the new icon.
