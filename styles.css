@@ -75,3 +75,17 @@ dialog::backdrop{background:rgba(0,0,0,.28);backdrop-filter:blur(2px)}
 .folder-editor{border:1px solid var(--line);border-radius:12px;padding:10px;margin:12px 0;background:#fafbfc}
 .folder-editor-children{padding-left:12px;border-left:2px solid var(--line)}
 .folder-label{color:var(--muted);font-size:.85rem}
+
+.sync-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-top:28px;padding:20px}
+.sync-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.sync-head h2{font-size:1.2rem}
+.auth-controls{display:grid;grid-template-columns:minmax(180px,1fr) minmax(160px,1fr) auto auto;gap:8px;margin-top:14px}
+.auth-controls input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;font-size:.9rem;background:#fbfcfd}
+.signed-in-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;font-size:.9rem}
+.sync-status{margin:12px 0 0;font-size:.86rem;color:var(--muted)}
+.sync-status[data-state="synced"]{color:#24613d}
+.sync-status[data-state="error"]{color:#8a2f2f}
+.sync-status[data-state="working"]{color:#6b5a20}
+.sync-status[data-state="local"]{color:var(--muted)}
+@media(max-width:760px){.auth-controls{grid-template-columns:1fr 1fr}.auth-controls .primary,.auth-controls .ghost{width:100%}}
+@media(max-width:480px){.auth-controls{grid-template-columns:1fr}.signed-in-row{align-items:flex-start;flex-direction:column}}

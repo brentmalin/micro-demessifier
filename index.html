@@ -20,8 +20,32 @@
         <h1>Micro Demessifier</h1>
         <p>Organize the OneDrive, SharePoint, Teams, and web pages you actually use.</p>
       </div>
-      <button id="manageBtn" class="ghost">Organize</button>
+      <div class="top-actions">
+        <button id="manageBtn" class="ghost">Organize</button>
+      </div>
     </header>
+
+    <section class="sync-card">
+      <div class="sync-head">
+        <div>
+          <div class="eyebrow">SYNC</div>
+          <h2>Phone + PC</h2>
+        </div>
+        <button id="syncNowBtn" class="ghost small" type="button">Sync now</button>
+      </div>
+      <div id="signedOutControls" class="auth-controls">
+        <input id="authEmail" type="email" placeholder="Email" autocomplete="email" aria-label="Email" />
+        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" aria-label="Password" />
+        <button id="signInBtn" class="primary" type="button">Sign in</button>
+        <button id="createAccountBtn" class="ghost" type="button">Create account</button>
+      </div>
+      <div id="signedInControls" class="signed-in-row" hidden>
+        <span>Signed in as <strong id="signedInEmail"></strong></span>
+        <button id="signOutBtn" class="ghost small" type="button">Sign out</button>
+      </div>
+      <p id="syncStatus" class="sync-status">Checking sync…</p>
+      <p class="hint">Your layout stays private behind your Supabase login. Recent items remain local to each device.</p>
+    </section>
 
     <section class="search-card">
       <label for="searchBox">Find a shortcut</label>
@@ -29,7 +53,7 @@
         <input id="searchBox" type="search" placeholder="Search your organized links…" autocomplete="off" />
         <button id="clearSearch" class="ghost small">Clear</button>
       </div>
-      <p class="hint">This version organizes the places you choose. A later Microsoft Graph-connected version can search 365 content directly.</p>
+      <p class="hint">This version organizes the places you choose. Microsoft Graph can be added later for live Microsoft 365 discovery.</p>
     </section>
 
     <main id="sections"></main>
@@ -46,7 +70,7 @@
     </section>
 
     <footer>
-      <span>Your organization stays in this browser unless you export it.</span>
+      <span>Your layout is saved locally and, when signed in, synced privately through Supabase.</span>
     </footer>
   </div>
 
@@ -81,6 +105,7 @@
     </form>
   </dialog>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>

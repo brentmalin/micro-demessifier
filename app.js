@@ -1,4 +1,3 @@
-
 const exampleConfig = {
   sections: [
     {
@@ -28,6 +27,11 @@ const exampleConfig = {
 
 const KEY="microDemessifierConfigV1";
 const RECENT_KEY="microDemessifierRecentV1";
+const SUPABASE_URL="https://zyyzwndmfwlhgpltkocb.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_y4QO69KX7_O02I5l1HNXtg_PMa3_NeS";
+const SYNC_TABLE="demessifier_data";
+const SYNC_POLL_MS=15000;
+
 const clone=x=>JSON.parse(JSON.stringify(x));
 const escapeHtml=(v="")=>String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[ch]));
 
@@ -53,12 +57,169 @@ function iconEditor(item,s,i){
 
 function loadConfig(){try{return JSON.parse(localStorage.getItem(KEY))||clone(exampleConfig)}catch{return clone(exampleConfig)}}
 let config=loadConfig();
-function saveConfig(){localStorage.setItem(KEY,JSON.stringify(config))}
+function saveConfigLocal(){localStorage.setItem(KEY,JSON.stringify(config))}
 function getRecent(){try{return JSON.parse(localStorage.getItem(RECENT_KEY))||[]}catch{return[]}}
 function addRecent(item){
   const old=getRecent().filter(x=>x.url!==item.url);
   localStorage.setItem(RECENT_KEY,JSON.stringify([{title:item.title,url:item.url},...old].slice(0,10)));
   renderRecent();
+}
+
+let supabaseClient=null;
+let currentUser=null;
+let lastCloudUpdatedAt=null;
+let syncTimer=null;
+let syncBusy=false;
+
+function setSyncStatus(message,state=""){
+  const el=document.getElementById("syncStatus");
+  if(!el)return;
+  el.textContent=message;
+  el.dataset.state=state;
+}
+function renderAuthState(){
+  const signedIn=!!currentUser;
+  document.getElementById("signedOutControls").hidden=signedIn;
+  document.getElementById("signedInControls").hidden=!signedIn;
+  if(signedIn){
+    document.getElementById("signedInEmail").textContent=currentUser.email||"Signed in";
+  }
+}
+function validCloudConfig(value){return value&&Array.isArray(value.sections)}
+
+async function initSupabase(){
+  if(!window.supabase?.createClient){
+    setSyncStatus("Cloud sync unavailable: Supabase library did not load.","error");
+    return;
+  }
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  currentUser=session?.user||null;
+  renderAuthState();
+  if(currentUser){
+    setSyncStatus("Signing in to sync…","working");
+    await loadCloudConfig({firstLoad:true});
+    startSyncPolling();
+  }else{
+    setSyncStatus("Not signed in — this device is using its local copy.","local");
+  }
+  supabaseClient.auth.onAuthStateChange(async (event,sessionNow)=>{
+    const nextUser=sessionNow?.user||null;
+    const changed=nextUser?.id!==currentUser?.id;
+    currentUser=nextUser;
+    renderAuthState();
+    if(currentUser&&changed){
+      setSyncStatus("Signed in. Connecting your layout…","working");
+      await loadCloudConfig({firstLoad:true});
+      startSyncPolling();
+    }
+    if(!currentUser){
+      stopSyncPolling();
+      lastCloudUpdatedAt=null;
+      setSyncStatus("Not signed in — this device is using its local copy.","local");
+    }
+  });
+}
+
+async function loadCloudConfig({firstLoad=false}={}){
+  if(!supabaseClient||!currentUser||syncBusy)return;
+  if(document.getElementById("managerDialog")?.open&&!firstLoad)return;
+  syncBusy=true;
+  try{
+    const {data,error}=await supabaseClient
+      .from(SYNC_TABLE)
+      .select("data,updated_at")
+      .eq("user_id",currentUser.id)
+      .order("updated_at",{ascending:false})
+      .limit(1);
+    if(error)throw error;
+    const row=data?.[0];
+    if(!row){
+      await saveCloudConfig({forceInsert:true});
+      setSyncStatus("Synced — this device's layout is now your cloud copy.","synced");
+      return;
+    }
+    const cloudTime=row.updated_at?Date.parse(row.updated_at):0;
+    const knownTime=lastCloudUpdatedAt?Date.parse(lastCloudUpdatedAt):0;
+    if(firstLoad||cloudTime>knownTime){
+      if(validCloudConfig(row.data)){
+        config=clone(row.data);
+        saveConfigLocal();
+        renderSections(document.getElementById("searchBox").value);
+        if(document.getElementById("managerDialog")?.open)renderManager();
+      }
+      lastCloudUpdatedAt=row.updated_at||lastCloudUpdatedAt;
+    }
+    setSyncStatus(`Synced as ${currentUser.email||"your account"}.`,"synced");
+  }catch(err){
+    console.error("Cloud load failed",err);
+    setSyncStatus(`Sync problem: ${err.message||"could not load cloud data"}. Local copy is still safe.`,"error");
+  }finally{syncBusy=false}
+}
+
+async function saveCloudConfig({forceInsert=false}={}){
+  if(!supabaseClient||!currentUser)return false;
+  const now=new Date().toISOString();
+  try{
+    let updatedRows=[];
+    if(!forceInsert){
+      const {data,error}=await supabaseClient
+        .from(SYNC_TABLE)
+        .update({data:config,updated_at:now})
+        .eq("user_id",currentUser.id)
+        .select("id");
+      if(error)throw error;
+      updatedRows=data||[];
+    }
+    if(forceInsert||!updatedRows.length){
+      const {error}=await supabaseClient
+        .from(SYNC_TABLE)
+        .insert({user_id:currentUser.id,data:config,updated_at:now});
+      if(error)throw error;
+    }
+    lastCloudUpdatedAt=now;
+    setSyncStatus(`Synced as ${currentUser.email||"your account"}.`,"synced");
+    return true;
+  }catch(err){
+    console.error("Cloud save failed",err);
+    setSyncStatus(`Saved on this device, but cloud sync failed: ${err.message||"unknown error"}.`,"error");
+    return false;
+  }
+}
+async function saveConfig(){
+  saveConfigLocal();
+  if(currentUser){
+    setSyncStatus("Saving to cloud…","working");
+    await saveCloudConfig();
+  }
+}
+function startSyncPolling(){
+  stopSyncPolling();
+  syncTimer=setInterval(()=>loadCloudConfig(),SYNC_POLL_MS);
+}
+function stopSyncPolling(){if(syncTimer){clearInterval(syncTimer);syncTimer=null}}
+
+async function signIn(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||!password){setSyncStatus("Enter your email and password first.","error");return}
+  setSyncStatus("Signing in…","working");
+  const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error)setSyncStatus(`Sign-in failed: ${error.message}`,"error");
+}
+async function createAccount(){
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||!password){setSyncStatus("Enter an email and password first.","error");return}
+  setSyncStatus("Creating account…","working");
+  const {data,error}=await supabaseClient.auth.signUp({email,password});
+  if(error){setSyncStatus(`Account setup failed: ${error.message}`,"error");return}
+  if(data.session){setSyncStatus("Account created and signed in.","synced")}
+  else setSyncStatus("Account created. Check your email to confirm it, then return here and sign in.","working");
+}
+async function signOut(){
+  if(!supabaseClient)return;
+  await supabaseClient.auth.signOut();
 }
 
 function matchesItem(item,q){
@@ -159,8 +320,8 @@ function syncManagerInputs(){
 
 document.getElementById("manageBtn").addEventListener("click",openManager);
 document.getElementById("addSection").addEventListener("click",()=>{syncManagerInputs();config.sections.push({title:"New section",items:[]});renderManager()});
-document.getElementById("saveChanges").addEventListener("click",()=>{syncManagerInputs();saveConfig();renderSections(document.getElementById("searchBox").value);document.getElementById("managerDialog").close()});
-document.getElementById("resetDefaults").addEventListener("click",()=>{config=clone(exampleConfig);saveConfig();renderManager();renderSections()});
+document.getElementById("saveChanges").addEventListener("click",async()=>{syncManagerInputs();await saveConfig();renderSections(document.getElementById("searchBox").value);document.getElementById("managerDialog").close()});
+document.getElementById("resetDefaults").addEventListener("click",async()=>{if(!confirm("Replace your current layout with the example layout?"))return;config=clone(exampleConfig);await saveConfig();renderManager();renderSections()});
 document.getElementById("searchBox").addEventListener("input",e=>renderSections(e.target.value));
 document.getElementById("clearSearch").addEventListener("click",()=>{document.getElementById("searchBox").value="";renderSections()});
 document.getElementById("clearRecent").addEventListener("click",()=>{localStorage.removeItem(RECENT_KEY);renderRecent()});
@@ -178,10 +339,18 @@ document.getElementById("importFile").addEventListener("change",async e=>{
   try{
     const parsed=JSON.parse(await file.text());
     if(!parsed.sections||!Array.isArray(parsed.sections))throw new Error("Invalid layout");
-    config=parsed; saveConfig(); renderManager(); renderSections();
+    config=parsed; await saveConfig(); renderManager(); renderSections();
   }catch{alert("That doesn't look like a Micro Demessifier layout file.")}
   e.target.value="";
 });
 
+document.getElementById("signInBtn").addEventListener("click",signIn);
+document.getElementById("createAccountBtn").addEventListener("click",createAccount);
+document.getElementById("signOutBtn").addEventListener("click",signOut);
+document.getElementById("syncNowBtn").addEventListener("click",()=>loadCloudConfig({firstLoad:true}));
+document.getElementById("authPassword").addEventListener("keydown",e=>{if(e.key==="Enter")signIn()});
+window.addEventListener("focus",()=>{if(currentUser)loadCloudConfig()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&currentUser)loadCloudConfig()});
+
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"))}
-renderSections(); renderRecent();
+renderSections(); renderRecent(); renderAuthState(); initSupabase();

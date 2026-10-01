@@ -1,55 +1,31 @@
-MICRO DEMESSIFIER — VERSION 1
+MICRO DEMESSIFIER — VERSION 5 (SUPABASE SYNC)
 
 Purpose
 -------
 Micro Demessifier is a user-controlled front end for messy Microsoft 365 navigation.
-It lets each person organize the OneDrive locations, SharePoint sites, document
-libraries, folders, Teams areas, and ordinary web pages they actually use.
+It lets each person organize the OneDrive locations, SharePoint sites, document libraries,
+folders, Teams areas, and ordinary web pages they actually use.
 
 Current features
 ----------------
-- User-created sections
-- User-created shortcuts
-- Rename/reorganize the conceptual structure yourself
+- User-created sections, folders, and shortcuts
+- Custom/automatic icons
 - Search saved shortcuts
-- Recent items
+- Recent items (device-local)
 - Import/export layout as JSON
-- Installable-web-app foundation
-- Desktop and mobile responsive interface
+- Installable PWA
+- Responsive desktop/mobile interface
+- Private cross-device layout sync through Supabase Auth + Row Level Security
 
-Privacy
--------
-This version has no Microsoft login and sends no data anywhere.
-The layout is stored in the browser's local storage.
+Sync behavior
+-------------
+The layout is always saved in browser localStorage first. If signed in, it is also saved to
+Supabase. Signed-in devices check for a newer cloud copy when the app opens, when it regains
+focus, and about every 15 seconds. The first signed-in device creates the cloud copy from its
+current local layout.
 
-Testing locally
----------------
-From this folder:
-  python -m http.server 8000
-
-Then visit:
-  http://localhost:8000
-
-For normal installation as a PWA on Windows/iPhone, host these files over HTTPS.
-
-Future direction
-----------------
-A Graph-connected edition could:
-- sign in with a work/school Microsoft account
-- discover accessible SharePoint sites and libraries
-- search OneDrive + SharePoint together
-- show actual recent files
-- let users pin live files/folders rather than just URLs
-- optionally sync the user's Demessifier layout across devices
-
-
-ICON UPDATE
------------
-Includes:
-- apple-touch-icon.png (180x180)
-- icon-192.png
-- icon-512.png
-
-The manifest and index.html already reference them.
-After GitHub Pages republishes, remove the old iPhone Home Screen shortcut
-and add the site again so iOS loads the new icon.
+Security
+--------
+The browser uses only the Supabase project URL and publishable key. Row Level Security restricts
+each authenticated user to rows whose user_id matches auth.uid(). Do not use a Supabase secret
+or service-role key in this app.

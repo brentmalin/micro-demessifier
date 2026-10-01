@@ -1,12 +1,19 @@
-Icon update
+Micro Demessifier v5 — private Supabase sync
 
-Upload the contents of this folder into the existing micro-demessifier GitHub repository, replacing files with the same names. Keep the existing site address so your browser retains your saved shortcuts.
+1. Upload all files in this folder to the existing GitHub repository, replacing files with the same names.
+2. Keep the same GitHub Pages address. This preserves the local browser copy already on your PC.
+3. Open Demessifier on the PC that currently has your preferred layout.
+4. In the new Sync card, enter an email and a new password and click Create account.
+5. If Supabase asks you to confirm your email, do that, return to Demessifier, and click Sign in.
+6. The first signed-in device uploads its current local layout to the private Supabase table.
+7. On your phone, update/reopen Demessifier, sign in with the same email/password, and it will load the cloud layout.
+8. Changes made with Organize > Save are saved locally and to Supabase. Other signed-in devices check for updates when opened/focused and about every 15 seconds.
+9. Import/Export still work as backups. Recent items intentionally remain device-local.
 
-After GitHub Pages finishes updating, reopen or refresh Demessifier. If it still shows the old editor, close the app and reopen it once more.
+Security
+--------
+The public Supabase publishable key is included in app.js by design. Your Row Level Security policies protect the table. Never put a secret/service-role key or the database password in these files.
 
-Click Organize. Each shortcut now has an Icon dropdown. Select Folder, Document, SharePoint, OneDrive, Teams, Link, Calendar, Email, Star, Auto, or Custom emoji. For Custom emoji, paste an emoji in the field below the dropdown. Click Save.
-
-Existing shortcuts retain their icons. Auto uses the shortcut URL to make a best guess. Export your layout before updating if you want a backup. Do not use Reset example unless you want to replace your layout.
-
-Folder update (v4)
-In Organize, click + Add folder in a section. Name it, then use + Add shortcut inside that folder to add its links. Click Save. Click the folder on the main screen to expand or collapse it. You can also add folders within folders. Search includes the links inside folders. Removing a populated folder asks for confirmation.
+Recommended after your account works on both devices
+----------------------------------------------------
+Because the GitHub Pages app is public, disable new user signups in Supabase Authentication settings after you have created your account. Existing accounts can continue to sign in.
